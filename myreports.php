@@ -24,7 +24,8 @@ try {
             reports.imageurl, 
             reports.status, 
             reports.longitude, 
-            reports.latitude
+            reports.latitude,
+            reports.phyaddress
         FROM reports
         JOIN user ON reports.user_id = user.id
         WHERE reports.user_id = :user_id

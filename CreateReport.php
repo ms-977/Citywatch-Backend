@@ -17,6 +17,7 @@ try {
     $longitude = $_POST['longitude'] ?? null;
     $latitude = $_POST['latitude'] ?? null;
     $priority = $_POST['priority'] ?? null;
+    $phyaddress = $_POST['phyaddress'] ?? null;
 
     if (!$user_id || !$category || !$description || !$longitude || !$latitude || !$priority) {
         echo json_encode(["success" => false, "message" => "Missing required fields."]);
@@ -45,8 +46,8 @@ try {
     }
 
     // Insert report into the database
-    $sql = "INSERT INTO reports (user_id, category, longitude, latitude, priority, imageurl, description) 
-            VALUES (:user_id, :category, :longitude, :latitude, :priority, :image_url, :description)";
+    $sql = "INSERT INTO reports (user_id, category, longitude, latitude, priority, imageurl, description,phyaddress) 
+            VALUES (:user_id, :category, :longitude, :latitude, :priority, :image_url, :description, :phyaddress)";
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         ':user_id' => $user_id,
@@ -55,6 +56,7 @@ try {
         ':latitude' => $latitude,
         ':priority' => $priority,
         ':image_url' => $image_url,
+        ':phyaddress' => $phyaddress,
         ':description' => $description,
     ]);
 

@@ -19,6 +19,7 @@ try {
         reports.longitude, 
         reports.latitude, 
         reports.status,
+        reports.phyaddress,
         reports.created_at AS date_reported
     FROM reports
     LEFT JOIN user ON reports.user_id = user.id

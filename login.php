@@ -26,8 +26,19 @@ $email = trim($data['email']);
 $password = $data['password'];
 
 try {
-    // Prepare and execute the query to fetch the user by email
-    $sql = "SELECT * FROM user WHERE LOWER(email) = LOWER(:email)";
+    // Prepare and execute the query to fetch the user and their role
+    $sql = "
+        SELECT 
+            u.id, 
+            u.name, 
+            u.email, 
+            u.password, 
+            ug.usertype 
+        FROM user u
+        JOIN usergroup ug ON u.id = ug.user_id
+        WHERE LOWER(u.email) = LOWER(:email)
+    ";
+    
     $stmt = $conn->prepare($sql);
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -41,7 +52,8 @@ try {
                 "user" => [
                     "id" => $user['id'],
                     "name" => $user['name'],
-                    "email" => $user['email']
+                    "email" => $user['email'],
+                    "usertype" => $user['usertype']  // Return the usertype for frontend routing
                 ]
             ]);
         } else {

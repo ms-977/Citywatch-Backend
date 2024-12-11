@@ -10,27 +10,30 @@ $action = $_GET['action'] ?? '';
 
 try {
     if ($action === "getStatistics") {
+        $filter = $_GET['filter'] ?? 'category'; // Default filter to 'category'
         $statistics = [];
 
-        // Total Reports by Status
-        $stmt = $conn->prepare("SELECT status, COUNT(*) AS total FROM reports GROUP BY status");
-        $stmt->execute();
-        $statistics['reportsByStatus'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($filter === 'category') {
+            // Group by category
+            $stmt = $conn->prepare("SELECT category AS name, COUNT(*) AS total FROM reports GROUP BY category ORDER BY total DESC");
+        } elseif ($filter === 'status') {
+            // Group by status
+            $stmt = $conn->prepare("SELECT status AS name, COUNT(*) AS total FROM reports GROUP BY status ORDER BY total DESC");
+        } elseif ($filter === 'zipcode') {
+            // Group by zipcode (assuming the last part of the address is the zipcode)
+            $stmt = $conn->prepare("SELECT 
+                SUBSTRING_INDEX(phyaddress, ' ', -1) AS name, 
+                COUNT(*) AS total 
+                FROM reports 
+                GROUP BY name 
+                ORDER BY total DESC");
+        } else {
+            echo json_encode(["success" => false, "message" => "Invalid filter"]);
+            exit;
+        }
 
-        // Average Time to Close
-        $stmt = $conn->prepare("SELECT AVG(DATEDIFF(STR_TO_DATE(closed_at, '%Y-%m-%d'), STR_TO_DATE(created_at, '%Y-%m-%d'))) AS avg_days_to_close FROM reports WHERE status = 'Closed'");
         $stmt->execute();
-        $statistics['avgTimeToClose'] = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Top Categories
-        $stmt = $conn->prepare("SELECT category, COUNT(*) AS report_count FROM reports GROUP BY category ORDER BY report_count DESC LIMIT 3");
-        $stmt->execute();
-        $statistics['topCategories'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Monthly Submissions
-        $stmt = $conn->prepare("SELECT DATE_FORMAT(STR_TO_DATE(created_at, '%Y-%m-%d'), '%Y-%m') AS month, COUNT(*) AS report_count FROM reports GROUP BY month ORDER BY month");
-        $stmt->execute();
-        $statistics['monthlyReports'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $statistics = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo json_encode(["success" => true, "statistics" => $statistics]);
         exit;
@@ -38,4 +41,3 @@ try {
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
 }
-?>
